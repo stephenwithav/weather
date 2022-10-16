@@ -26,9 +26,9 @@ func New(b []byte) (*Forecast, error) {
 }
 
 type Forecast struct {
-	Condition   string
-	Temperature string // use enum nstead
-	Alerts      struct{}
+	Condition   string   `json:"condition"`
+	Temperature string   `json:"temperature" ` // use enum nstead
+	Alerts      struct{} `json:"-"`
 }
 
 type openweatherForecast struct {
