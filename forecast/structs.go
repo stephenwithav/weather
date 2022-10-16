@@ -11,16 +11,27 @@ var ErrInvalidJSON error = errors.New("Invalid JSON")
 //
 // Returns ErrInvalidJSON if invaid and/or incomplete JSON received.
 func New(b []byte) (*Forecast, error) {
-	var forecast Forecast
+	var owforecast openweatherForecast
 	if !json.Valid(b) {
-		return &forecast, ErrInvalidJSON
+		return nil, ErrInvalidJSON
 	}
 
-	json.Unmarshal(b, &forecast)
-	return &forecast, nil
+	json.Unmarshal(b, &owforecast)
+	forecast := &Forecast{
+		Condition:   owforecast.Condition(),
+		Temperature: owforecast.Temperature(),
+	}
+
+	return forecast, nil
 }
 
 type Forecast struct {
+	Condition   string
+	Temperature string // use enum nstead
+	Alerts      struct{}
+}
+
+type openweatherForecast struct {
 	Coord struct {
 		Lon float64 `json:"lon"`
 		Lat float64 `json:"lat"`
@@ -66,4 +77,24 @@ type Forecast struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
 	Cod      int    `json:"cod"`
+}
+
+func (o *openweatherForecast) Temperature() string {
+	if o.Main.Temp > 80 {
+		return "Hot"
+	}
+
+	if o.Main.Temp > 70 {
+		return "Moderate"
+	}
+
+	return "Cold"
+}
+
+func (o *openweatherForecast) Condition() string {
+	if len(o.Weather) == 0 {
+		return "Unknown"
+	}
+
+	return o.Weather[0].Description
 }
